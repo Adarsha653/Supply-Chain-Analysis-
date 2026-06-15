@@ -11,9 +11,13 @@ Usage:
 """
 import os
 from datetime import datetime, timezone
+from pathlib import Path
 
 import requests
+from dotenv import load_dotenv
 from pymongo import MongoClient
+
+load_dotenv(Path(__file__).resolve().parents[2] / ".env")
 
 FLASK_API_URL = os.getenv("FLASK_API_URL", "http://127.0.0.1:5001/api/products")
 MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017")

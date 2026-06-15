@@ -16,7 +16,10 @@ from pathlib import Path
 
 import boto3
 import pandas as pd
+from dotenv import load_dotenv
 from pymongo import MongoClient
+
+load_dotenv(Path(__file__).resolve().parents[2] / ".env")
 
 ROOT = Path(__file__).resolve().parents[2]
 EXCEL_PATH = Path(os.getenv("EXCEL_PATH", ROOT / "step3" / "excel" / "NewOrders.xlsx"))
