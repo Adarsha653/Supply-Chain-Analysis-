@@ -1,15 +1,15 @@
-"""Fake product catalog — local scraping playground (Step 1)."""
+"""Fake product catalog — HTML table + JSON API (Step 1)."""
 import os
+import sys
 from pathlib import Path
 
-import pandas as pd
-from flask import Flask, render_template_string
+from flask import Flask, jsonify, render_template_string
+
+# Allow import from step1/products.py
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from products import load_products  # noqa: E402
 
 PORT = int(os.getenv("FLASK_PORT", "5001"))
-
-ROOT = Path(__file__).resolve().parents[2]
-CSV_PATH = ROOT / "Dataset" / "DataCoSupplyChainDataset.csv"
-SAMPLE_SIZE = 50
 
 app = Flask(__name__)
 
@@ -25,11 +25,13 @@ HTML = """
     th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
     th { background: #edf2f7; }
     tr:nth-child(even) { background: #f7fafc; }
+    .api-link { margin-top: 1rem; }
   </style>
 </head>
 <body>
   <h1>DataCo Live Product Feed</h1>
   <p>Fake storefront for scraper practice — {{ rows|length }} products</p>
+  <p class="api-link">JSON API: <a href="/api/products">/api/products</a></p>
   <table id="products">
     <thead>
       <tr>
@@ -65,30 +67,24 @@ HTML = """
 """
 
 
-def load_products() -> list[dict]:
-    df = pd.read_csv(CSV_PATH, encoding="latin-1", low_memory=False)
-    subset = df.drop_duplicates(subset=["Product Name"]).head(SAMPLE_SIZE)
-    return [
-        {
-            "order_item_id": row["Order Item Id"],
-            "product_name": row["Product Name"],
-            "department": row["Department Name"],
-            "category": row["Category Name"],
-            "market": row["Market"],
-            "product_price": row["Product Price"],
-            "shipping_mode": row["Shipping Mode"],
-            "delivery_status": row["Delivery Status"],
-            "late_risk": row["Late_delivery_risk"],
-        }
-        for _, row in subset.iterrows()
-    ]
-
-
 @app.route("/")
 def catalog():
-    return render_template_string(HTML, rows=load_products())
+    rows = load_products()
+    return render_template_string(HTML, rows=rows)
+
+
+@app.route("/api/products")
+def api_products():
+    rows = load_products()
+    return jsonify({"count": len(rows), "products": rows})
+
+
+@app.route("/health")
+def health():
+    return jsonify({"status": "ok", "port": PORT})
 
 
 if __name__ == "__main__":
-    print(f"Open http://127.0.0.1:{PORT}")
+    print(f"HTML catalog: http://127.0.0.1:{PORT}/")
+    print(f"JSON API:     http://127.0.0.1:{PORT}/api/products")
     app.run(host="127.0.0.1", port=PORT, debug=True)

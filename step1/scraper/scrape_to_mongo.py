@@ -1,4 +1,13 @@
-"""Scrape the fake catalog and insert rows into MongoDB (Steps 1 + 2)."""
+"""Scrape the fake catalog and insert rows into MongoDB Atlas (Step 1 + 2).
+
+Requires:
+  - Flask running: python3 step1/flask_app/app.py
+  - MONGO_URI set (Atlas connection string)
+
+Example:
+  export MONGO_URI="mongodb+srv://USER:PASSWORD@cluster0.xxxxx.mongodb.net/"
+  python3 step1/scraper/scrape_to_mongo.py
+"""
 import os
 from datetime import datetime, timezone
 

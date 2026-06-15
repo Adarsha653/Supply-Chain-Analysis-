@@ -1,6 +1,6 @@
 # Supply Chain Analytics Project — Overview
 
-**Author:** Adarsha  
+**Author:** Adarsha, Aditya
 **Dataset:** DataCo Supply Chain (~180K order lines, 2015–2018)  
 **Goal:** Build an end-to-end data pipeline that ingests orders from multiple sources (CSV, web scrape, APIs), stores and transforms them in the cloud, and delivers business insights through dashboards and automated alerts.
 
@@ -178,15 +178,19 @@ This mirrors real data engineering: **batch files + web scrape + REST APIs** all
 
 - [x] Project repo and folder structure
 - [x] DataCo CSV validated (~180K rows)
-- [x] Flask fake website (localhost:5001)
-- [x] Web scraper script
+- [x] Flask fake website + `/api/products` JSON API (localhost:5001)
+- [x] Web scraper script (`step1/scraper/scrape_to_mongo.py`)
+- [x] API enrichment script (`step2/api_fetch/fetch_enrichment.py`)
+- [x] Merge pipeline + Excel template generator
+- [x] Databricks notebooks (Bronze → Silver → Gold)
+- [x] SAP alert stub
 - [x] MongoDB Atlas cluster (Cluster0)
 - [ ] Scraper confirmed in Atlas collections
-- [ ] API ingestion scripts
-- [ ] Excel + VBA
-- [ ] AWS S3
-- [ ] Databricks pipeline
-- [ ] SAP alerts
+- [ ] API data confirmed in Atlas (`api_products`, `api_enrichment`)
+- [ ] Excel + VBA button wired
+- [ ] AWS S3 upload working
+- [ ] Databricks pipeline run end-to-end
+- [ ] SAP alerts tested
 - [ ] Power BI dashboard
 
 ---
@@ -203,15 +207,19 @@ This mirrors real data engineering: **batch files + web scrape + REST APIs** all
 Supply-Chain-Analysis-/
 ├── Dataset/                    # Source CSV
 ├── step1/
-│   ├── flask_app/              # Fake website
+│   ├── flask_app/app.py        # Fake website + /api/products
+│   ├── products.py             # Shared product loader
 │   └── scraper/                # HTML → MongoDB
-├── step2/                      # (API fetch scripts — coming)
+├── step2/api_fetch/            # REST API → MongoDB
 ├── step3/excel/                # Excel + VBA + merge pipeline
 ├── step6/                      # SAP CRM alert script
-├── databricks/notebooks/       # Bronze → Silver → Gold
-├── scripts/                    # Local validation
+├── databricks/notebooks/     # Bronze → Silver → Gold
+├── scripts/                    # Validation + Excel template
+├── exports/                    # Local CSV outputs
+├── .env.example                # Environment variable template
 ├── BUILD_PLAN.md               # Step-by-step checklist
-└── PROJECT_OVERVIEW.md         # This file
+├── PROJECT_OVERVIEW.md         # This file
+└── README.md                   # Main entry point
 ```
 
 ---

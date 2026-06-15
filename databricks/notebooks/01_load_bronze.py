@@ -1,12 +1,17 @@
 # Databricks notebook source
 # MAGIC %md
 # MAGIC # 01 — Load Bronze (raw CSV)
-# MAGIC Run this once after uploading the CSV to your workspace.
+# MAGIC
+# MAGIC **Option A:** Unity Catalog Volume (upload CSV in Databricks UI)  
+# MAGIC **Option B:** AWS S3 path (after Day 3 — set `CSV_PATH` to `s3://your-bucket/...`)
 
 # COMMAND ----------
 
-# Update this path after you upload the file (see README Step 4).
+# Option A — Databricks Volume
 CSV_PATH = "/Volumes/main/default/supply_chain/DataCoSupplyChainDataset.csv"
+
+# Option B — AWS S3 (uncomment and set your bucket)
+# CSV_PATH = "s3://supply-chain-dataco-yourname/raw/DataCoSupplyChainDataset.csv"
 
 CATALOG = "main"
 SCHEMA = "supply_chain"

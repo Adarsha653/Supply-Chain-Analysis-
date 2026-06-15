@@ -7,3 +7,5 @@ venv/
 *.duckdb
 exports/
 .databricks/
+step3/excel/NewOrders.xlsx
+*.pbix

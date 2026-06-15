@@ -3,11 +3,12 @@ Background script for the Excel VBA button (Step 3 → 4).
 
 Merges:
   - Excel 'New Orders' sheet
-  - MongoDB scraped product/market data
-Then uploads a clean CSV to AWS S3.
+  - MongoDB scraped_products (web scrape)
+  - MongoDB api_enrichment (REST API metadata)
+Then uploads a clean CSV to AWS S3 (or exports locally if no bucket).
 
-Configure env vars before running:
-  EXCEL_PATH, MONGO_URI, AWS_BUCKET, AWS_REGION
+Env vars:
+  MONGO_URI, EXCEL_PATH, AWS_BUCKET, AWS_REGION, AWS_PREFIX
 """
 import os
 from datetime import datetime, timezone
@@ -28,27 +29,49 @@ AWS_PREFIX = os.getenv("AWS_PREFIX", "incoming/")
 def load_excel_orders() -> pd.DataFrame:
     if not EXCEL_PATH.exists():
         raise FileNotFoundError(
-            f"Excel file not found: {EXCEL_PATH}. Create NewOrders.xlsx first."
+            f"Excel file not found: {EXCEL_PATH}. "
+            "Run: python3 scripts/create_new_orders_template.py"
         )
     return pd.read_excel(EXCEL_PATH, sheet_name="New Orders")
 
 
-def load_mongo_prices() -> pd.DataFrame:
+def load_mongo_collection(name: str) -> pd.DataFrame:
     client = MongoClient(MONGO_URI)
-    docs = list(client[MONGO_DB]["scraped_products"].find({}, {"_id": 0}))
+    docs = list(client[MONGO_DB][name].find({}, {"_id": 0}))
     return pd.DataFrame(docs)
 
 
-def merge_and_clean(orders: pd.DataFrame, prices: pd.DataFrame) -> pd.DataFrame:
-    if prices.empty:
-        return orders
-    return orders.merge(
-        prices,
-        left_on="Product Name",
-        right_on="Product Name",
-        how="left",
-        suffixes=("", "_catalog"),
-    )
+def merge_and_clean(
+    orders: pd.DataFrame,
+    scraped: pd.DataFrame,
+    enrichment: pd.DataFrame,
+) -> pd.DataFrame:
+    merged = orders.copy()
+
+    if not scraped.empty and "Product Name" in scraped.columns:
+        catalog = scraped.rename(
+            columns={"Product Name": "Product Name", "Market": "Market_catalog"}
+        )
+        if "Product Name" in merged.columns:
+            merged = merged.merge(
+                catalog,
+                on="Product Name",
+                how="left",
+                suffixes=("", "_scrape"),
+            )
+
+    if not enrichment.empty and "market" in enrichment.columns:
+        market_col = "Market" if "Market" in merged.columns else None
+        if market_col:
+            merged = merged.merge(
+                enrichment.rename(columns={"market": market_col}),
+                on=market_col,
+                how="left",
+                suffixes=("", "_api"),
+            )
+
+    merged["merged_at"] = datetime.now(timezone.utc).isoformat()
+    return merged
 
 
 def upload_to_s3(df: pd.DataFrame) -> str:
@@ -69,10 +92,12 @@ def upload_to_s3(df: pd.DataFrame) -> str:
 
 def main() -> None:
     orders = load_excel_orders()
-    prices = load_mongo_prices()
-    merged = merge_and_clean(orders, prices)
+    scraped = load_mongo_collection("scraped_products")
+    enrichment = load_mongo_collection("api_enrichment")
+    merged = merge_and_clean(orders, scraped, enrichment)
     location = upload_to_s3(merged)
     print(f"Pipeline complete → {location}")
+    print(f"Rows: {len(merged):,} | Columns: {len(merged.columns)}")
 
 
 if __name__ == "__main__":
