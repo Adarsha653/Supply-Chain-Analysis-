@@ -9,6 +9,7 @@ Example:
   python3 step1/scraper/scrape_to_mongo.py
 """
 import os
+import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -17,10 +18,13 @@ from bs4 import BeautifulSoup
 from dotenv import load_dotenv
 from pymongo import MongoClient
 
-load_dotenv(Path(__file__).resolve().parents[2] / ".env")
+ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT))
+load_dotenv(ROOT / ".env")
+
+from scripts.mongo_config import get_mongo_uri  # noqa: E402
 
 CATALOG_URL = os.getenv("CATALOG_URL", "http://127.0.0.1:5001/")
-MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017")
 DB_NAME = os.getenv("MONGO_DB", "supply_chain")
 COLLECTION = os.getenv("MONGO_COLLECTION", "scraped_products")
 
@@ -45,8 +49,15 @@ def scrape_catalog(url: str) -> list[dict]:
     return rows
 
 
+def validate_mongo_uri(uri: str) -> None:
+    if not uri.startswith(("mongodb://", "mongodb+srv://")):
+        raise ValueError("Mongo URI must start with mongodb:// or mongodb+srv://")
+
+
 def save_to_mongo(rows: list[dict]) -> int:
-    client = MongoClient(MONGO_URI)
+    uri = get_mongo_uri()
+    validate_mongo_uri(uri)
+    client = MongoClient(uri)
     collection = client[DB_NAME][COLLECTION]
     if rows:
         # Replace previous scrape so re-runs don't duplicate rows

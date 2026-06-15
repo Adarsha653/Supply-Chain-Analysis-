@@ -68,7 +68,7 @@ python3 scripts/validate_local.py
 ```bash
 python3 step1/flask_app/app.py
 ```
-- Catalog: http://127.0.0.1:5001/
+- Catalog: http://127.0.0.1:5001/ (10% sample, all 53 columns)
 - API: http://127.0.0.1:5001/api/products
 
 **Terminal 2 — Scrape → MongoDB:**
@@ -77,7 +77,7 @@ export MONGO_URI="mongodb+srv://USER:PASSWORD@cluster0.xxxxx.mongodb.net/?appNam
 python3 step1/scraper/scrape_to_mongo.py
 ```
 
-Verify in Atlas: `supply_chain.scraped_products` (~50 docs)
+Verify in Atlas: `supply_chain.scraped_products` (~18K docs, 10% sample × 53 columns)
 
 ### 4. Day 7 — API ingestion
 
@@ -155,7 +155,7 @@ Supply-Chain-Analysis-/
 
 | Collection | Source | Step |
 |------------|--------|------|
-| `scraped_products` | BeautifulSoup HTML scrape | 1 |
+| `scraped_products` | BeautifulSoup HTML scrape | 1 | ~18K rows, 53 cols (10% sample) |
 | `api_products` | Flask `/api/products` | 2b |
 | `api_enrichment` | Market region metadata API | 2b |
 

@@ -10,6 +10,7 @@ Usage:
   python3 step2/api_fetch/fetch_enrichment.py
 """
 import os
+import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -17,10 +18,13 @@ import requests
 from dotenv import load_dotenv
 from pymongo import MongoClient
 
-load_dotenv(Path(__file__).resolve().parents[2] / ".env")
+ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT))
+load_dotenv(ROOT / ".env")
+
+from scripts.mongo_config import get_mongo_uri  # noqa: E402
 
 FLASK_API_URL = os.getenv("FLASK_API_URL", "http://127.0.0.1:5001/api/products")
-MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017")
 DB_NAME = os.getenv("MONGO_DB", "supply_chain")
 
 # Region metadata for DataCo market values (enrichment layer)
@@ -55,7 +59,7 @@ def fetch_market_enrichment() -> list[dict]:
 
 
 def save_to_mongo(collection: str, rows: list[dict]) -> int:
-    client = MongoClient(MONGO_URI)
+    client = MongoClient(get_mongo_uri())
     coll = client[DB_NAME][collection]
     if rows:
         coll.delete_many({"source": rows[0].get("source")})

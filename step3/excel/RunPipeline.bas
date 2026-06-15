@@ -9,7 +9,7 @@ Sub RunSupplyChainPipeline()
 
     ThisWorkbook.Save
 
-    pythonPath = "/usr/local/bin/python3"
+    pythonPath = "/Library/Frameworks/Python.framework/Versions/3.13/bin/python3"
     scriptPath = "/Users/aryal/Documents/Projects/Supply-Chain-Analysis-/step3/excel/run_pipeline.py"
 
     cmd = pythonPath & " " & Chr(34) & scriptPath & Chr(34)

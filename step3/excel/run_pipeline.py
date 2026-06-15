@@ -11,6 +11,7 @@ Env vars:
   MONGO_URI, EXCEL_PATH, AWS_BUCKET, AWS_REGION, AWS_PREFIX
 """
 import os
+import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -19,11 +20,13 @@ import pandas as pd
 from dotenv import load_dotenv
 from pymongo import MongoClient
 
-load_dotenv(Path(__file__).resolve().parents[2] / ".env")
-
 ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT))
+load_dotenv(ROOT / ".env")
+
+from scripts.mongo_config import get_mongo_uri  # noqa: E402
+
 EXCEL_PATH = Path(os.getenv("EXCEL_PATH", ROOT / "step3" / "excel" / "NewOrders.xlsx"))
-MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017")
 MONGO_DB = os.getenv("MONGO_DB", "supply_chain")
 AWS_BUCKET = os.getenv("AWS_BUCKET", "")
 AWS_PREFIX = os.getenv("AWS_PREFIX", "incoming/")
@@ -39,7 +42,7 @@ def load_excel_orders() -> pd.DataFrame:
 
 
 def load_mongo_collection(name: str) -> pd.DataFrame:
-    client = MongoClient(MONGO_URI)
+    client = MongoClient(get_mongo_uri())
     docs = list(client[MONGO_DB][name].find({}, {"_id": 0}))
     return pd.DataFrame(docs)
 

@@ -67,7 +67,7 @@ python3 step1/scraper/scrape_to_mongo.py
 
 **Files:** `step1/flask_app/app.py`, `step1/scraper/scrape_to_mongo.py`
 
-**Done when:** ~50 rows in Atlas → `supply_chain.scraped_products`
+**Done when:** ~18K rows (10% sample) × 53 columns in Atlas → `supply_chain.scraped_products`
 
 ---
 
