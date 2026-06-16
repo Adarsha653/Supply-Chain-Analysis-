@@ -33,8 +33,7 @@ HTML = """
 <body>
   <h1>DataCo Live Product Feed</h1>
   <p class="meta">
-    Showing {{ rows|length }} of {{ total_rows }} rows &times; {{ columns|length }} columns
-    ({{ (sample_frac * 100)|int }}% sample) —
+    Showing {{ rows|length }} of {{ total_rows }} rows &times; {{ columns|length }} columns —
     full dataset: <a href="/api/products">/api/products</a>
   </p>
   <div class="table-wrap">
@@ -72,7 +71,6 @@ def catalog():
         rows=display_rows,
         total_rows=len(all_rows),
         columns=column_names(),
-        sample_frac=SAMPLE_FRAC,
     )
 
 
