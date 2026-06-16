@@ -6,10 +6,11 @@ from pathlib import Path
 from flask import Flask, jsonify, render_template_string
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from products import column_names, load_dataframe, load_products  # noqa: E402
+from products import CSV_PATH, column_names, load_dataframe, load_products, warm_cache  # noqa: E402
 
 PORT = int(os.getenv("FLASK_PORT", "5001"))
 SAMPLE_FRAC = float(os.getenv("SAMPLE_FRAC", "0.10"))
+DISPLAY_MAX_ROWS = int(os.getenv("DISPLAY_MAX_ROWS", "200"))
 
 app = Flask(__name__)
 
@@ -32,9 +33,9 @@ HTML = """
 <body>
   <h1>DataCo Live Product Feed</h1>
   <p class="meta">
-    {{ rows|length }} rows &times; {{ columns|length }} columns
+    Showing {{ rows|length }} of {{ total_rows }} rows &times; {{ columns|length }} columns
     ({{ (sample_frac * 100)|int }}% sample) —
-    JSON API: <a href="/api/products">/api/products</a>
+    full dataset: <a href="/api/products">/api/products</a>
   </p>
   <div class="table-wrap">
     <table id="products">
@@ -64,10 +65,12 @@ HTML = """
 @app.route("/")
 def catalog():
     df = load_dataframe()
-    rows = df.to_dict(orient="records")
+    all_rows = df.to_dict(orient="records")
+    display_rows = all_rows[:DISPLAY_MAX_ROWS]
     return render_template_string(
         HTML,
-        rows=rows,
+        rows=display_rows,
+        total_rows=len(all_rows),
         columns=column_names(),
         sample_frac=SAMPLE_FRAC,
     )
@@ -96,9 +99,13 @@ def health():
             "rows": len(df),
             "columns": len(column_names()),
             "sample_frac": SAMPLE_FRAC,
+            "csv_file": CSV_PATH.name,
+            "display_max_rows": DISPLAY_MAX_ROWS,
         }
     )
 
+
+warm_cache()
 
 if __name__ == "__main__":
     df = load_dataframe()

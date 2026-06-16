@@ -7,6 +7,10 @@ services:
     startCommand: gunicorn step1.flask_app.app:app --bind 0.0.0.0:$PORT --timeout 120 --workers 1
     envVars:
       - key: SAMPLE_FRAC
-        value: "0.01"
+        value: "1.0"
+      - key: SAMPLE_SEED
+        value: "42"
+      - key: DISPLAY_MAX_ROWS
+        value: "200"
       - key: PYTHON_VERSION
         value: "3.11.9"
