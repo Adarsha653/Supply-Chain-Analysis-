@@ -8,7 +8,9 @@ from dotenv import load_dotenv
 load_dotenv(Path(__file__).resolve().parents[1] / ".env")
 
 ROOT = Path(__file__).resolve().parents[1]
-CSV_PATH = ROOT / "Dataset" / "DataCoSupplyChainDataset.csv"
+# Use smaller web export on Render/free hosts if present (see docs/DEPLOY_WEBSITE.md)
+_WEB_CSV = ROOT / "Dataset" / "DataCoSupplyChainDataset_web.csv"
+CSV_PATH = _WEB_CSV if _WEB_CSV.exists() else ROOT / "Dataset" / "DataCoSupplyChainDataset.csv"
 SAMPLE_FRAC = float(os.getenv("SAMPLE_FRAC", "0.10"))
 RANDOM_SEED = int(os.getenv("SAMPLE_SEED", "42"))
 
